@@ -1,157 +1,152 @@
-# US Generation Facilities Map
+# U.S. Generation Intelligence
 
-A browser-based map and analytics dashboard for exploring active and retired U.S. electric generation facilities by technology, entity, state, sector, operating year, nameplate capacity, and retirement status.
+A deployable, browser-based intelligence platform for exploring active and retired U.S. electric generation facilities. The application combines an interactive facility map, generator-level drill-downs, fleet filters, retirement analytics, capacity trends, facility rankings, and CSV export.
 
-## Overview
+The January 2026 data snapshot is compiled into `data/generation-data.js`. End users never need to find, select, or upload a data file.
 
-US Generation Facilities Map is a standalone HTML, CSS, and JavaScript application for visualizing power generation assets across the United States. It loads active and retired generation facility CSV files, plots facilities on an interactive Leaflet map, and updates charts, heatmaps, choropleths, and summary metrics as filters change.
+## Current snapshot
 
-The application is designed for quick portfolio review, technology mix analysis, generation asset mapping, retirement screening, entity-level analysis, and exploratory review of plant age, capacity, and geographic concentration.
+| Measure | Count |
+|---|---:|
+| Plant-level facilities | 15,888 |
+| Facilities with valid map coordinates | 15,876 |
+| Generator records | 34,897 |
+| Active generator records | 27,770 |
+| Retired generator records | 7,127 |
 
-## Key Features
+The source extracts are generator-level. The build process consolidates them by plant ID so that each map marker represents a facility rather than a stacked set of generator rows. Generator records remain available inside each facility profile.
 
-- Load active and retired generation facility CSV files from the local folder or through the file picker
-- Auto-load default CSV files when they are stored next to the HTML file
-- Map facilities using latitude and longitude
-- Display facility-level popup details with entity name, plant name, technology, sector, state, county, nameplate MW, operating year, retirement year, status, and Google Maps link
-- Filter facilities by active or retired status
-- Filter by technology using quick chips for solar, wind, hydro, nuclear, natural gas, coal, petroleum, renewables, fossil, and batteries
-- Use single-select or multi-select technology filtering
-- Filter by entity name, plant name, sector, state, operating year range, and nameplate MW range
-- Use temporal mode to animate facilities commissioned through a moving cutoff year
-- Show visible facility count and visible nameplate MW
-- Display a heatmap overlay weighted by nameplate MW
-- Display a state choropleth shaded by filtered total MW
-- Resize filter and analytics side panels
-- Switch between day and night base maps
-- Fit the map to loaded data
+## Product capabilities
 
-## Analytics Included
+- **No data-upload workflow:** the application starts from a bundled JavaScript data store.
+- **Plant-level mapping:** one marker per plant ID, with capacity dynamically recalculated from the current generator filters.
+- **Generator drill-downs:** nameplate, summer and winter capacity, technology, fuel, prime mover, operating year, retirement year, and status.
+- **High-value filters:** active/retired fleet, technology, state, sector, operating year, visible facility capacity, and global text search.
+- **Live analytics:** capacity by technology and state, annual capacity additions, reported retirement outlook, entity counts, and fleet totals.
+- **Facility explorer:** sortable, paginated facility list linked to the map and detail drawer.
+- **Export:** download the current plant-level selection as CSV.
+- **Shareable views:** filter state is encoded in the URL hash.
+- **Responsive interface:** desktop side panels and mobile filter/analytics drawers.
+- **Theme and map controls:** light/dark interface, light/dark basemaps, capacity-scaled markers, and optional heatmap.
+- **Data transparency:** bundled metadata, exception counts, and explicit aggregation methodology.
 
-The analytics panel updates live with the current filters and includes:
-
-- Total visible nameplate MW
-- Visible facility count
-- Entity count
-- State count
-- Average life span for facilities with retirement year data
-- Median life span for facilities with retirement year data
-- MW by technology, top 12
-- MW by state, top 12
-- Average life span by technology
-- Average life span by state
-- Cumulative MW over operating year
-- Top entities by MW
-
-Interactive chart elements can be used to isolate technologies, toggle state filters, or set an entity filter.
-
-## Technology Stack
-
-- HTML
-- CSS
-- JavaScript
-- Leaflet for interactive maps
-- Carto basemaps for day and night map tiles
-- Leaflet.heat for heatmap visualization
-- Papa Parse for CSV parsing
-- Tom Select for multi-select filter controls
-- Chart.js for analytics charts
-
-The application runs in the browser and does not require a backend server.
-
-## Expected Input Files
-
-The app attempts to auto-load these files from the same folder as the HTML file:
+## Repository structure
 
 ```text
-JAP Gen Data _ Jan 2026 (active).csv
-JAP Gen Data _ Jan 2026 (retired).csv
+.
+├── index.html                       # Application shell
+├── assets/
+│   ├── app.js                       # State, filters, mapping, analytics, export, and UI logic
+│   └── styles.css                   # Responsive product design system
+├── data/
+│   └── generation-data.js           # Generated browser-ready data store
+├── scripts/
+│   └── build_data.py                # CSV-to-JavaScript build pipeline
+├── source-data/
+│   └── README.md                    # Optional staging instructions for future extracts
+├── tests/
+│   └── validate_data.py             # Structural and referential data validation
+├── .nojekyll                        # Direct GitHub Pages asset delivery
+└── README.md
 ```
 
-If browser security blocks local file access, or if the CSVs have different names, use the file picker to select one or both CSVs manually.
+## Run locally
 
-## Expected CSV Fields
-
-The parser is designed to recognize fields such as:
-
-- `Entity Name`
-- `Plant Name`
-- `Plant State` or `State`
-- `County`
-- `Sector`
-- `Technology`
-- `Nameplate Capacity (MW)`, `Nameplate MW`, or `Nameplate Capacity`
-- `Operating Year` or `Online Year`
-- `Status`
-- `Latitude` or `Lat`
-- `Longitude`, `Lon`, or `Lng`
-- `Planned Retirement Year`, `Retirement Year`, or similar retirement-year field
-
-Rows without valid latitude and longitude are skipped because they cannot be mapped.
-
-## How to Use
-
-1. Download or clone the repository.
-2. Place the HTML file and the two generation CSVs in the same folder.
-3. Open `jap_us_generation_facilities_application_v20.html` in a modern browser, or serve the folder with a local static server.
-4. If the CSVs do not auto-load, click `Load from folder` or use the file picker to select the active and retired CSV files.
-5. Use the Data tab to filter by technology, entity, plant, sector, state, year range, MW range, and active or retired status.
-6. Use the Settings tab to control the technology legend, heatmap overlay, heat radius, heat blur, and state choropleth.
-7. Use the Analytics panel to review filtered totals, charts, life span metrics, cumulative MW, and top entities.
-8. Click a facility dot to view facility details and open the location in Google Maps.
-
-## Local Development
-
-For best results, serve the project from a local static server. This avoids common browser restrictions when an HTML file opened with `file://` tries to read neighboring CSV files.
-
-Example using Python:
+No package installation or application build is required.
 
 ```bash
 python -m http.server 8000
 ```
 
-Then open:
+Open `http://localhost:8000`.
 
-```text
-http://localhost:8000/jap_us_generation_facilities_application_v20.html
-```
+The application uses pinned CDN versions of Leaflet, Leaflet.heat, and Chart.js. Internet access is required for those libraries and for CARTO map tiles. The facility data itself is bundled locally.
 
-On Windows, if the Python launcher is configured as `py`, use:
+## Deploy to GitHub Pages
+
+1. Create a GitHub repository and copy this project into the repository root.
+2. Push the files to the default branch.
+3. In **Settings → Pages**, select **Deploy from a branch**.
+4. Select the default branch and the repository root, then save.
+5. Open the Pages URL after deployment completes.
+
+No environment variables, backend, database, or build service are required.
+
+## Refresh the data snapshot
+
+Place the next active and retired CSV extracts in a local directory, then run:
 
 ```bash
-py -m http.server 8000
+python scripts/build_data.py \
+  --active "source-data/JAP Gen Data _ Jan 2026 (active)(U.S.).csv" \
+  --retired "source-data/JAP Gen Data _ Jan 2026 (retired).csv" \
+  --output "data/generation-data.js"
 ```
 
-## Expected Project Layout
+The builder:
 
-```text
-project-folder/
-  jap_us_generation_facilities_application_v20.html
-  JAP Gen Data _ Jan 2026 (active).csv
-  JAP Gen Data _ Jan 2026 (retired).csv
-  README.md
+1. validates required source columns;
+2. identifies records as active or retired from the source extract;
+3. groups generator rows by plant ID;
+4. normalizes repeated plant metadata;
+5. retains facilities without valid coordinates for analytics and lists;
+6. dictionary-encodes repeated text values to reduce payload size;
+7. writes a compact JavaScript data store that loads without `fetch()` or file permissions.
+
+Update the `snapshot` value in `scripts/build_data.py` when publishing a new reporting period.
+
+## Validate the generated store
+
+Run this before every deployment:
+
+```bash
+python tests/validate_data.py
+node --check assets/app.js
+python -m py_compile scripts/build_data.py
 ```
 
-## Data Interpretation Notes
+The data validator confirms:
 
-Dot size is scaled by nameplate MW with an upper percentile cap so very large plants do not dominate the map. The heatmap is also weighted by nameplate MW and rescales as filters change.
+- metadata counts match the generated arrays;
+- facility generator ranges are contiguous and complete;
+- dictionary references are valid;
+- active and retired record totals reconcile;
+- mapped coordinates are valid;
+- the generated store uses the expected schema version.
 
-Life span metrics require both operating year and retirement year. Active facilities or records without retirement year data will not contribute to average or median life span calculations.
+## Data model
 
-The state choropleth is based only on facilities visible under the current filters, not the entire loaded dataset.
+### Facility record
 
-## Data Privacy Note
+Each facility is keyed by plant ID and stores normalized entity, plant, state, county, sector, coordinates, and the contiguous range of associated generator records.
 
-Do not add confidential client data, proprietary asset lists, or non-public planning assumptions to a public repository. Use public, synthetic, or approved datasets when presenting this project externally.
+### Generator record
 
-## Future Improvements
+Each generator stores generator ID, nameplate/summer/winter capacity, technology, energy source, prime mover, operating month/year, reported retirement month/year, detailed status, and source classification.
 
-Potential next steps include:
+### Runtime aggregation
 
-- Add downloadable filtered CSV exports
-- Add saved filter presets
-- Add source-data documentation and refresh scripts
-- Add offline/local copies of external JavaScript and CSS dependencies
-- Add state, entity, and technology summary tables
-- Add map screenshot export
-- Add unit tests for parsing, filtering, and aggregation logic
+Filters are evaluated at the generator level. Passing generator records are then aggregated to the facility level. The marker size, facility capacity, charts, metrics, list, and exports therefore remain mathematically consistent with the current selection.
+
+## Interpretation notes
+
+- “Active” and “retired” identify the two supplied source extracts. The facility drawer also preserves each record’s detailed status.
+- Reported retirement years are displayed as provided; the application does not independently predict retirements.
+- Facility capacity means the sum of generator nameplate MW that pass the current filters.
+- A facility may contain both active and retired generator history.
+- Facilities without valid coordinates remain in analytics and exports but cannot be displayed on the map.
+
+## Production hardening options
+
+The current repository is ready for static deployment. For a controlled enterprise release, the next logical steps are:
+
+- vendor the pinned third-party libraries locally and apply a strict Content Security Policy;
+- add automated browser tests in CI;
+- place the site behind an authenticated CDN if the data is restricted;
+- document source provenance and confirm redistribution rights before publishing the dataset;
+- add a scheduled data-refresh workflow if future source files are delivered consistently;
+- add server-side telemetry only if usage tracking is required.
+
+## Browser support
+
+Current desktop and mobile versions of Chrome, Edge, Firefox, and Safari are supported. JavaScript must be enabled.
