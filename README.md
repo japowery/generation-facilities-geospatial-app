@@ -20,7 +20,7 @@ The application is a static release: the dataset is bundled locally, there is no
 
 ## Current release
 
-**Version 3.0.1 · January 2026 data snapshot · author-credit desktop build**
+**Version 3.0.1**
 
 | Measure | Value |
 | --- | ---: |
