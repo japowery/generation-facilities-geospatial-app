@@ -194,7 +194,7 @@ If a lightweight courtesy gate is still desirable for an internal handoff, add i
 
 ## Ownership and attribution
 
-U.S. Generation Intelligence was built by **Jason Powery**. The in-app brand area carries a quiet “Built by Jason Powery” credit, and the repository includes a [`CITATION.cff`](CITATION.cff) file for formal attribution.
+U.S. Generation Intelligence was built by **Jason Powery**.
 
 The original application code and bundled data are released under the repository’s proprietary terms. Vendored libraries remain under their own licenses; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
