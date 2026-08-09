@@ -1,152 +1,203 @@
 # U.S. Generation Intelligence
 
-A deployable, browser-based intelligence platform for exploring active and retired U.S. electric generation facilities. The application combines an interactive facility map, generator-level drill-downs, fleet filters, retirement analytics, capacity trends, facility rankings, and CSV export.
+<p align="center">
+  <strong>An interactive geospatial intelligence platform for the U.S. electric generation fleet.</strong><br>
+  Explore facilities, drill into generators, compare capacity, and investigate the reported retirement outlook from one focused map-first workspace.
+</p>
 
-The January 2026 data snapshot is compiled into `data/generation-data.js`. End users never need to find, select, or upload a data file.
+<p align="center">
+  <a href="#run-locally">Run locally</a> ·
+  <a href="#windows-desktop-release">Windows release</a> ·
+  <a href="#data-and-methodology">Data and methodology</a> ·
+  <a href="https://github.com/japowery/generation-facilities-geospatial-app/actions/workflows/quality.yml">Quality checks</a>
+</p>
 
-## Current snapshot
+## Why this project
 
-| Measure | Count |
-|---|---:|
-| Plant-level facilities | 15,888 |
+U.S. Generation Intelligence turns generator-level records into a fast, self-contained facility explorer. It keeps the map, filters, analytics, facility list, profiles, and exports synchronized as the selection changes, so a question can move from national context to individual generator detail without leaving the application.
+
+The application is a static release: the dataset is bundled locally, there is no backend to configure, and no user upload step. The same source can run in a browser, deploy to GitHub Pages, or be packaged as the supplied Windows desktop executable.
+
+## Current release
+
+**Version 3.0.1 · January 2026 data snapshot · author-credit desktop build**
+
+| Measure | Value |
+| --- | ---: |
+| Plant-level facilities | 15,887 |
 | Facilities with valid map coordinates | 15,876 |
-| Generator records | 34,897 |
-| Active generator records | 27,770 |
-| Retired generator records | 7,127 |
+| Generator records | 34,894 |
+| Active generator records | 27,768 |
+| Retired generator records | 7,126 |
+| Nameplate capacity | 1,673,828.5 MW |
 
-The source extracts are generator-level. The build process consolidates them by plant ID so that each map marker represents a facility rather than a stacked set of generator rows. Generator records remain available inside each facility profile.
+The generated store records its own schema version, reporting period, source-row reconciliation, missing-coordinate counts, and other quality counters. The current release intentionally excludes the raw CSV extracts; see [`source-data/README.md`](source-data/README.md) for the controlled refresh workflow.
 
 ## Product capabilities
 
-- **No data-upload workflow:** the application starts from a bundled JavaScript data store.
-- **Plant-level mapping:** one marker per plant ID, with capacity dynamically recalculated from the current generator filters.
-- **Generator drill-downs:** nameplate, summer and winter capacity, technology, fuel, prime mover, operating year, retirement year, and status.
-- **High-value filters:** active/retired fleet, technology, state, sector, operating year, visible facility capacity, and global text search.
-- **Live analytics:** capacity by technology and state, annual capacity additions, reported retirement outlook, entity counts, and fleet totals.
-- **Facility explorer:** sortable, paginated facility list linked to the map and detail drawer.
-- **Export:** download the current plant-level selection as CSV.
-- **Shareable views:** filter state is encoded in the URL hash.
-- **Responsive interface:** desktop side panels and mobile filter/analytics drawers.
-- **Theme and map controls:** light/dark interface, light/dark basemaps, capacity-scaled markers, and optional heatmap.
-- **Data transparency:** bundled metadata, exception counts, and explicit aggregation methodology.
+- **Map-first exploration:** zoom-adaptive facility markers, capacity-scaled dots, optional heatmap, light/dark basemaps, and a national reset view.
+- **Fleet filters:** active/retired status, technology, state, sector, operating year, visible capacity, and global facility/entity/county search.
+- **Generator-level detail:** nameplate, summer and winter capacity, technology, fuel, prime mover, operating year, reported retirement year, and source status.
+- **Live intelligence:** capacity by technology and state, annual capacity additions, reported retirements, fleet totals, facility rankings, and entity counts.
+- **Operational workflow:** sortable/paginated facility explorer, linked map/detail drawer, CSV export, and shareable filter state encoded in the URL hash.
+- **Responsive design:** desktop side panels, mobile drawers, keyboard navigation, accessible status announcements, and theme persistence.
 
-## Repository structure
+## Windows desktop release
 
-```text
-.
-├── index.html                       # Application shell
-├── assets/
-│   ├── app.js                       # State, filters, mapping, analytics, export, and UI logic
-│   └── styles.css                   # Responsive product design system
-├── data/
-│   └── generation-data.js           # Generated browser-ready data store
-├── scripts/
-│   └── build_data.py                # CSV-to-JavaScript build pipeline
-├── source-data/
-│   └── README.md                    # Optional staging instructions for future extracts
-├── tests/
-│   └── validate_data.py             # Structural and referential data validation
-├── .nojekyll                        # Direct GitHub Pages asset delivery
-└── README.md
+The recommended release is available at [`dist/US_Generation_Intelligence_v3.0.1.exe`](dist/US_Generation_Intelligence_v3.0.1.exe). The supplied `v3.0.0` executable is retained beside it as a provenance reference. Verify either download against [`dist/SHA256SUMS.txt`](dist/SHA256SUMS.txt) before distributing it.
+
+```powershell
+Get-FileHash .\dist\US_Generation_Intelligence_v3.0.0.exe -Algorithm SHA256
 ```
+
+The executable is a self-contained WebView2 desktop wrapper around the static application. Windows systems need the Microsoft Edge WebView2 Runtime available. The executable is unsigned, so Windows SmartScreen may display an unrecognized-publisher warning on first launch.
+
+The binary is a convenience distribution artifact; the editable application source remains the authoritative implementation in this repository.
+
+The wrapper is reproducible from [`desktop/`](desktop/):
+
+```powershell
+.\desktop\build_windows.ps1
+```
+
+That script creates a clean `v3.0.1` build from the current source. An optional courtesy password gate can be enabled at build time without committing the password; see [`desktop/README.md`](desktop/README.md).
 
 ## Run locally
 
-No package installation or application build is required.
+The runtime needs only Python’s standard-library HTTP server. From the repository root:
 
 ```bash
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000`.
+Open <http://localhost:8000>. A local HTTP server is recommended because the application loads bundled JavaScript, vendor assets, and map resources; opening `index.html` directly from `file://` can produce browser restrictions.
 
-The application uses pinned CDN versions of Leaflet, Leaflet.heat, and Chart.js. Internet access is required for those libraries and for CARTO map tiles. The facility data itself is bundled locally.
+The facility data is local. The light and dark background maps are requested from CARTO, so an internet connection is needed for the geographic basemap; the analytics, list, profiles, filters, and export remain available if tile requests fail.
 
-## Deploy to GitHub Pages
+## Repository map
 
-1. Create a GitHub repository and copy this project into the repository root.
-2. Push the files to the default branch.
-3. In **Settings → Pages**, select **Deploy from a branch**.
-4. Select the default branch and the repository root, then save.
-5. Open the Pages URL after deployment completes.
+```text
+.
+├── index.html                    # Application shell and accessible UI structure
+├── assets/
+│   ├── app.js                    # State, filters, map, analytics, detail, export
+│   ├── styles.css                # Responsive visual system and themes
+│   └── theme-init.js             # No-flash theme initialization
+├── data/
+│   └── generation-data.js        # Generated browser-ready January 2026 store
+├── dist/
+│   ├── US_Generation_Intelligence_v3.0.0.exe  # Supplied reference build
+│   ├── US_Generation_Intelligence_v3.0.1.exe  # Recommended source-built release
+│   └── SHA256SUMS.txt
+├── desktop/
+│   ├── main.py                  # Loopback/WebView2 desktop wrapper
+│   ├── build_windows.ps1        # Reproducible Windows build
+│   └── README.md                # Optional password-gate guidance
+├── scripts/
+│   └── build_data.py             # CSV-to-JavaScript data pipeline
+├── source-data/
+│   └── README.md                 # Private/staged source-data instructions
+├── tests/
+│   ├── browser_smoke.mjs         # Optional Chromium smoke coverage
+│   ├── test_build_data.py        # Builder unit tests
+│   ├── test_characterization.py  # Release regression invariants
+│   ├── test_validate_data.py     # Validator unit tests
+│   └── validate_data.py          # Generated-store validator
+├── vendor/                       # Pinned browser libraries and licenses
+├── .github/workflows/quality.yml # Automated release checks
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── SECURITY.md
+└── THIRD_PARTY_NOTICES.md
+```
 
-No environment variables, backend, database, or build service are required.
+## Data and methodology
+
+The source extracts are generator-level. The build pipeline:
+
+1. validates required headers and records missing optional columns;
+2. skips only rows whose parsed source cells are completely empty;
+3. classifies rows as active or retired from the input file assignment;
+4. groups records by plant ID and normalizes repeated facility metadata;
+5. retains facilities without valid coordinates for analytics, lists, profiles, and exports;
+6. dictionary-encodes repeated text to keep the browser payload compact; and
+7. writes the generated JavaScript store only after serialization succeeds.
+
+At runtime, filters are applied to generators first. Passing generators are then aggregated to facilities, which keeps marker sizes, facility capacity, charts, metrics, rankings, and CSV exports mathematically consistent with the current selection.
+
+Interpretation boundaries:
+
+- “Active” and “retired” identify the supplied source extracts; detailed status text is preserved separately.
+- Reported retirement years are source values, not independent forecasts.
+- Facility capacity is the sum of nameplate MW for generators passing the current filters.
+- A facility can contain both active and retired generator history.
+- Facilities without valid coordinates remain useful in non-map views but cannot appear as map markers.
 
 ## Refresh the data snapshot
 
-Place the next active and retired CSV extracts in a local directory, then run:
+Keep raw extracts in a controlled, non-published location. If they are staged under `source-data/`, the repository ignores CSV files by default.
 
 ```bash
 python scripts/build_data.py \
   --active "source-data/JAP Gen Data _ Jan 2026 (active)(U.S.).csv" \
   --retired "source-data/JAP Gen Data _ Jan 2026 (retired).csv" \
-  --output "data/generation-data.js"
+  --output "data/generation-data.js" \
+  --snapshot "January 2026" \
+  --as-of-year 2026 \
+  --retirement-kpi-end-year 2035 \
+  --retirement-chart-end-year 2050 \
+  --facility-page-size 25
 ```
 
-The builder:
+Before publishing a new snapshot, record the source provenance, reporting period, received date, file sizes, SHA-256 checksums, and redistribution rights. Update the characterization test deliberately when a data correction is intended.
 
-1. validates required source columns;
-2. identifies records as active or retired from the source extract;
-3. groups generator rows by plant ID;
-4. normalizes repeated plant metadata;
-5. retains facilities without valid coordinates for analytics and lists;
-6. dictionary-encodes repeated text values to reduce payload size;
-7. writes a compact JavaScript data store that loads without `fetch()` or file permissions.
+## Verify a release
 
-Update the `snapshot` value in `scripts/build_data.py` when publishing a new reporting period.
-
-## Validate the generated store
-
-Run this before every deployment:
+The standard-library checks run without installing application dependencies:
 
 ```bash
+python -m unittest discover -s tests -p "test_*.py"
 python tests/validate_data.py
+python -O tests/validate_data.py
+python -m py_compile scripts/build_data.py tests/validate_data.py
 node --check assets/app.js
-python -m py_compile scripts/build_data.py
+node --check tests/browser_smoke.mjs
 ```
 
-The data validator confirms:
+The optional browser smoke test requires Node.js 20+, Playwright, and a Chromium installation:
 
-- metadata counts match the generated arrays;
-- facility generator ranges are contiguous and complete;
-- dictionary references are valid;
-- active and retired record totals reconcile;
-- mapped coordinates are valid;
-- the generated store uses the expected schema version.
+```bash
+npm ci
+npx playwright install chromium
+npm run test:browser
+```
 
-## Data model
+GitHub Actions runs the repeatable Python and JavaScript checks on pushes and pull requests. Firefox and WebKit should be added before making a tested cross-browser support claim.
 
-### Facility record
+## Deploy to GitHub Pages
 
-Each facility is keyed by plant ID and stores normalized entity, plant, state, county, sector, coordinates, and the contiguous range of associated generator records.
+This is a static site and can be deployed directly from the repository:
 
-### Generator record
+1. open **Settings → Pages**;
+2. choose **Deploy from a branch**;
+3. select `main` and the repository root; and
+4. open the generated Pages URL after deployment completes.
 
-Each generator stores generator ID, nameplate/summer/winter capacity, technology, energy source, prime mover, operating month/year, reported retirement month/year, detailed status, and source classification.
+For a controlled deployment, configure the host with a strict Content Security Policy, `X-Content-Type-Options`, appropriate cache headers, and a licensed tile source. Remember that any data bundled into a client-side application is downloadable by anyone who can open it.
 
-### Runtime aggregation
+## Security and password protection
 
-Filters are evaluated at the generator level. Passing generator records are then aggregated to the facility level. The marker size, facility capacity, charts, metrics, list, and exports therefore remain mathematically consistent with the current selection.
+This repository does not commit a password or claim that the supplied EXE provides strong access control. A password embedded in a client-distributed executable can be extracted by a determined user. For genuinely restricted data, use authenticated hosting, encrypted distribution, or per-user licensing outside the static client.
 
-## Interpretation notes
+If a lightweight courtesy gate is still desirable for an internal handoff, add it at the desktop-wrapper layer and treat it as a deterrent only. See [`SECURITY.md`](SECURITY.md) before distributing a protected build.
 
-- “Active” and “retired” identify the two supplied source extracts. The facility drawer also preserves each record’s detailed status.
-- Reported retirement years are displayed as provided; the application does not independently predict retirements.
-- Facility capacity means the sum of generator nameplate MW that pass the current filters.
-- A facility may contain both active and retired generator history.
-- Facilities without valid coordinates remain in analytics and exports but cannot be displayed on the map.
+## Ownership and attribution
 
-## Production hardening options
+U.S. Generation Intelligence was built by **Jason Powery**. The in-app brand area carries a quiet “Built by Jason Powery” credit, and the repository includes a [`CITATION.cff`](CITATION.cff) file for formal attribution.
 
-The current repository is ready for static deployment. For a controlled enterprise release, the next logical steps are:
+The original application code and bundled data are released under the repository’s proprietary terms. Vendored libraries remain under their own licenses; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-- vendor the pinned third-party libraries locally and apply a strict Content Security Policy;
-- add automated browser tests in CI;
-- place the site behind an authenticated CDN if the data is restricted;
-- document source provenance and confirm redistribution rights before publishing the dataset;
-- add a scheduled data-refresh workflow if future source files are delivered consistently;
-- add server-side telemetry only if usage tracking is required.
+## License
 
-## Browser support
-
-Current desktop and mobile versions of Chrome, Edge, Firefox, and Safari are supported. JavaScript must be enabled.
+Copyright © 2026 Jason Powery. All rights reserved. See [`LICENSE`](LICENSE) for the repository terms.

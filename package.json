@@ -1,0 +1,16 @@
+{
+  "name": "us-generation-intelligence",
+  "version": "3.0.1",
+  "private": true,
+  "description": "Optional development checks for the install-free U.S. Generation Intelligence static application.",
+  "type": "module",
+  "scripts": {
+    "test:browser": "node tests/browser_smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

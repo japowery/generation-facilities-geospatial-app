@@ -1,0 +1,7 @@
+Copyright © 2026 Jason Powery. All rights reserved.
+
+This repository is published for portfolio, review, and controlled distribution purposes. No permission is granted to copy, modify, merge, publish, distribute, sublicense, sell, or create derivative works from the original application code or bundled data without prior written permission from Jason Powery.
+
+The files under `vendor/` are third-party software and remain subject to the licenses included in `vendor/licenses/`. Third-party notices are collected in `THIRD_PARTY_NOTICES.md`.
+
+The public availability of this repository does not grant permission to redistribute the bundled generation dataset. Users are responsible for confirming source-data provenance and redistribution rights before publishing a refreshed snapshot.

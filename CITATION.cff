@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: U.S. Generation Intelligence
+version: 3.0.1
+date-released: 2026-08-09
+message: If you use this application or its methodology, please cite the repository and its author.
+type: software
+authors:
+  - family-names: Powery
+    given-names: Jason
+repository-code: https://github.com/japowery/generation-facilities-geospatial-app
+url: https://github.com/japowery/generation-facilities-geospatial-app
+abstract: >-
+  A static geospatial intelligence platform for exploring active and retired
+  U.S. electric generation facilities, generator detail, fleet filters,
+  capacity analytics, reported retirement outlook, and CSV export.
+keywords:
+  - electricity
+  - generation facilities
+  - geospatial analysis
+  - GIS
+  - energy intelligence
+license: LicenseRef-Proprietary

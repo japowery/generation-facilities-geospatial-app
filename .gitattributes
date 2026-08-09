@@ -1,0 +1,10 @@
+*.exe binary
+*.png binary
+*.zip binary
+*.7z binary
+*.bz2 binary
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.py text eol=lf
+*.md text eol=lf

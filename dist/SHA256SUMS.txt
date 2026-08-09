@@ -1,0 +1,2 @@
+359bf2a3d8b674cf43e8af3e175a8020d4c0cf0e8b31ff0c387c1583f3377e9b  US_Generation_Intelligence_v3.0.0.exe
+b762e5913a5c2d1ccf22faca171dd95ca7a52584835d7dd32ae005f3d33ff16d  US_Generation_Intelligence_v3.0.1.exe

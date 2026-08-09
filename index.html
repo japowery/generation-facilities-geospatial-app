@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Explore active and retired U.S. electric generation facilities, capacity, technology, ownership, operating history, and retirement outlook.">
+  <meta name="author" content="Jason Powery">
+  <meta name="theme-color" content="#09111f">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>U.S. Generation Intelligence</title>
+
+  <script src="assets/theme-init.js"></script>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="assets/styles.css">
+
+  <script src="vendor/leaflet/leaflet.js" defer></script>
+  <script src="vendor/leaflet-heat/leaflet-heat.js" defer></script>
+  <script src="vendor/chart.js/chart.umd.js" defer></script>
+  <script src="data/generation-data.js" defer></script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#globalSearch">Skip to facility search</a>
+  <noscript>
+    <div class="fatal-error">This application requires JavaScript.</div>
+  </noscript>
+
+  <div id="app" class="app-shell" aria-busy="true">
+    <div id="map" role="region" tabindex="0" aria-label="Interactive map of U.S. generation facilities" aria-describedby="mapInstructions"></div>
+    <p id="mapInstructions" class="sr-only">Use the map controls to zoom and reset the national view. Open Facilities in the intelligence panel for a keyboard-accessible list of mapped facilities.</p>
+    <div id="resultsAnnouncer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <header class="topbar glass" role="banner">
+      <button class="brand" id="homeBtn" aria-label="Reset filters and return to the national map">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" role="img"><path d="M7 27.8 15.7 8h7.8l-3.1 9.2H33L21.8 33l2.5-10H12.1L7 27.8Z"/></svg>
+        </span>
+        <span class="brand-copy">
+          <strong>Generation Intelligence</strong>
+          <small>U.S. facility explorer</small>
+          <span class="brand-credit">Built by Jason Powery</span>
+        </span>
+      </button>
+
+      <div class="global-search" role="search">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35m2.35-5.65A8 8 0 1 1 3 11a8 8 0 0 1 16 0Z"/></svg>
+        <input id="globalSearch" type="search" autocomplete="off" placeholder="Search facility, entity, county, or state" aria-label="Search facilities" aria-controls="facilityList map">
+        <kbd>/</kbd>
+      </div>
+
+      <div class="topbar-meta">
+        <div class="dataset-pill" title="Bundled data snapshot">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="datasetLabel">Loading data…</span>
+        </div>
+        <button class="icon-button" id="shareBtn" type="button" title="Copy a link to the current view" aria-label="Copy share link">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a3 3 0 1 0-2.83-4A3 3 0 0 0 18 8ZM6 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm12 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM8.6 16.4l6.8-3.8M8.6 7.6l6.8 3.8"/></svg>
+        </button>
+        <button class="icon-button" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle color theme">
+          <svg class="theme-dark-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 15.2A8.5 8.5 0 0 1 8.8 3.3 8.7 8.7 0 1 0 20.7 15.2Z"/></svg>
+          <svg class="theme-light-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+        </button>
+        <button class="icon-button panel-trigger filter-trigger" id="filtersMobileBtn" type="button" title="Open filters" aria-label="Open filters" aria-controls="filterPanel" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10m-7 6h4"/></svg>
+        </button>
+        <button class="icon-button panel-trigger insights-trigger" id="insightsMobileBtn" type="button" title="Open intelligence" aria-label="Open intelligence" aria-controls="insightsPanel" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg>
+        </button>
+        <div class="more-actions">
+          <button class="icon-button" id="moreBtn" type="button" title="More actions" aria-label="More actions" aria-controls="moreMenu" aria-expanded="false" aria-haspopup="menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg>
+          </button>
+          <div id="moreMenu" class="more-menu" role="menu" aria-label="Application actions" hidden>
+            <button id="moreShareBtn" type="button" role="menuitem">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a3 3 0 1 0-2.83-4A3 3 0 0 0 18 8ZM6 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm12 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM8.6 16.4l6.8-3.8M8.6 7.6l6.8 3.8"/></svg>
+              Copy filtered view
+            </button>
+            <button id="moreThemeBtn" type="button" role="menuitem">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 15.2A8.5 8.5 0 0 1 8.8 3.3 8.7 8.7 0 1 0 20.7 15.2Z"/></svg>
+              Toggle theme
+            </button>
+            <button id="moreBasemapBtn" type="button" role="menuitem">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 10 9 5 9-5M3 17l9 5 9-5"/></svg>
+              Switch basemap
+            </button>
+            <button id="moreDataBtn" type="button" role="menuitem">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h8M8 13h8"/></svg>
+              Dataset details
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <aside id="filterPanel" class="side-panel left-panel glass" role="dialog" aria-modal="false" aria-labelledby="filterPanelTitle">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Explore</p>
+          <h1 id="filterPanelTitle">Filter the fleet</h1>
+        </div>
+        <div class="heading-actions">
+          <button class="text-button" id="resetBtn" type="button">Reset</button>
+          <button class="panel-close mobile-only" data-close-panel="filterPanel" type="button" aria-label="Close filters" aria-controls="filterPanel">×</button>
+        </div>
+      </div>
+
+      <div class="panel-scroll">
+        <section class="filter-section" aria-labelledby="statusHeading">
+          <div class="section-heading compact">
+            <h2 id="statusHeading">Fleet status</h2>
+            <span id="statusSummary">All generators</span>
+          </div>
+          <div class="segmented-toggle" role="group" aria-label="Fleet status">
+            <button id="activeStatusBtn" type="button" class="segment active" aria-pressed="true">
+              <span class="status-swatch active-swatch"></span>
+              Active
+              <strong id="activeCountBadge">—</strong>
+            </button>
+            <button id="retiredStatusBtn" type="button" class="segment active" aria-pressed="true">
+              <span class="status-swatch retired-swatch"></span>
+              Retired
+              <strong id="retiredCountBadge">—</strong>
+            </button>
+          </div>
+        </section>
+
+        <section class="filter-section">
+          <div class="section-heading compact"><h2>Technology</h2><button class="mini-link" id="technologyClearBtn" type="button">All</button></div>
+          <div class="quick-chips" id="technologyGroups" aria-label="Technology groups">
+            <button type="button" data-tech-group="renewables">Renewables</button>
+            <button type="button" data-tech-group="fossil">Fossil</button>
+            <button type="button" data-tech-group="nuclear">Nuclear</button>
+            <button type="button" data-tech-group="storage">Storage</button>
+          </div>
+          <div class="multi-select" id="technologyFilter"></div>
+        </section>
+
+        <section class="filter-section two-column-filters">
+          <div>
+            <div class="section-heading compact"><h2>State</h2></div>
+            <div class="multi-select" id="stateFilter"></div>
+          </div>
+          <div>
+            <div class="section-heading compact"><h2>Sector</h2></div>
+            <div class="multi-select" id="sectorFilter"></div>
+          </div>
+        </section>
+
+        <section class="filter-section">
+          <div class="section-heading compact">
+            <h2>Operating year</h2>
+            <span id="operatingYearReadout">—</span>
+          </div>
+          <div class="dual-range" id="operatingYearRange">
+            <div class="range-track"><div class="range-fill"></div></div>
+            <input class="range-min" type="range" aria-label="Minimum operating year">
+            <input class="range-max" type="range" aria-label="Maximum operating year">
+          </div>
+          <div class="range-inputs">
+            <label>From<input id="operatingYearMinInput" type="number" inputmode="numeric"></label>
+            <label>Through<input id="operatingYearMaxInput" type="number" inputmode="numeric"></label>
+          </div>
+        </section>
+
+        <section class="filter-section">
+          <div class="section-heading compact">
+            <h2>Filtered facility capacity</h2>
+            <span id="capacityReadout">—</span>
+          </div>
+          <p class="field-help">Capacity recalculates from generator records that pass the active filters.</p>
+          <div class="dual-range" id="capacityRange">
+            <div class="range-track"><div class="range-fill"></div></div>
+            <input class="range-min" type="range" aria-label="Minimum facility capacity">
+            <input class="range-max" type="range" aria-label="Maximum facility capacity">
+          </div>
+          <div class="range-inputs">
+            <label>Minimum MW<input id="capacityMinInput" type="number" inputmode="decimal"></label>
+            <label>Maximum MW<input id="capacityMaxInput" type="number" inputmode="decimal"></label>
+          </div>
+        </section>
+
+        <section class="filter-section">
+          <div class="section-heading compact"><h2>Map layers</h2></div>
+          <label class="switch-row">
+            <span><strong>Capacity heatmap</strong><small>Weighted by visible nameplate MW</small></span>
+            <input id="heatToggle" type="checkbox"><i aria-hidden="true"></i>
+          </label>
+          <label class="switch-row">
+            <span><strong>Scale dots by capacity</strong><small>Otherwise use uniform markers</small></span>
+            <input id="scaleDotsToggle" type="checkbox" checked><i aria-hidden="true"></i>
+          </label>
+        </section>
+      </div>
+
+      <section class="filter-footer" aria-label="Filtered facility actions">
+        <button class="primary-button" id="fitSelectionBtn" type="button" aria-label="Fit selected facilities on the map">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>
+          Fit selection
+        </button>
+        <button class="secondary-button" id="exportBtn" type="button" aria-label="Export filtered facilities as CSV">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+          Export CSV
+        </button>
+      </section>
+    </aside>
+
+    <aside id="insightsPanel" class="side-panel right-panel glass" role="dialog" aria-modal="false" aria-labelledby="insightsPanelTitle">
+      <div class="panel-heading insights-heading">
+        <div>
+          <p class="eyebrow">Intelligence</p>
+          <h1 id="insightsPanelTitle">Fleet intelligence</h1>
+        </div>
+        <button class="panel-close mobile-only" data-close-panel="insightsPanel" type="button" aria-label="Close intelligence" aria-controls="insightsPanel">×</button>
+      </div>
+
+      <div class="tab-list" role="tablist" aria-label="Analytics views">
+        <button class="tab active" id="overviewTab" role="tab" aria-selected="true" aria-controls="overviewView" type="button">Overview</button>
+        <button class="tab" id="facilitiesTab" role="tab" aria-selected="false" aria-controls="facilitiesView" type="button">Facilities</button>
+        <button class="tab" id="dataTab" role="tab" aria-selected="false" aria-controls="dataView" type="button">Data</button>
+      </div>
+
+      <div class="panel-scroll insights-scroll">
+        <section id="overviewView" class="tab-view active" role="tabpanel" aria-labelledby="overviewTab" tabindex="0">
+          <div class="kpi-grid">
+            <article class="kpi featured"><span>Nameplate capacity</span><strong id="totalCapacityKpi">—</strong><small id="capacityContext">Across current selection</small></article>
+            <article class="kpi"><span>Facilities</span><strong id="facilityCountKpi">—</strong><small id="mappedContext">— mapped</small></article>
+            <article class="kpi"><span>Generators</span><strong id="generatorCountKpi">—</strong><small id="statusContext">Active and retired</small></article>
+            <article class="kpi"><span>Entities</span><strong id="entityCountKpi">—</strong><small id="stateCountContext">— states</small></article>
+          </div>
+
+          <article class="insight-card retirement-callout">
+            <div class="callout-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M6 21h12"/></svg>
+            </div>
+            <div><span>Reported retirements through 2035</span><strong id="retirementOutlookKpi">—</strong><small id="retirementOutlookContext">Active generators with a reported retirement year</small></div>
+          </article>
+
+          <article class="chart-card">
+            <div class="card-heading"><div><h2>Capacity by technology</h2><p>Top technologies in the current selection</p></div><span>MW</span></div>
+            <div class="chart-wrap tall">
+              <canvas id="technologyChart" role="img" aria-label="Horizontal bar chart of nameplate capacity by technology">Capacity by technology chart. Use the underlying data view when a visual chart is not accessible.</canvas>
+              <div class="chart-empty" data-chart-empty="technology" role="status" hidden><strong>No technology data</strong><span>Adjust or clear filters to restore this chart.</span></div>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <div class="card-heading"><div><h2>Capacity by state</h2><p>Click a bar to isolate a state</p></div><span>MW</span></div>
+            <div class="chart-wrap">
+              <canvas id="stateChart" role="img" aria-label="Horizontal bar chart of nameplate capacity by state">Capacity by state chart. Use the underlying data view when a visual chart is not accessible.</canvas>
+              <div class="chart-empty" data-chart-empty="state" role="status" hidden><strong>No state data</strong><span>Adjust or clear filters to restore this chart.</span></div>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <div class="card-heading"><div><h2>Capacity added over time</h2><p>Nameplate MW by operating year</p></div><span>Annual</span></div>
+            <div class="chart-wrap">
+              <canvas id="additionsChart" role="img" aria-label="Line chart of nameplate capacity by operating year">Capacity additions over time chart. Use the underlying data view when a visual chart is not accessible.</canvas>
+              <div class="chart-empty" data-chart-empty="additions" role="status" hidden><strong>No operating-year data</strong><span>Adjust or clear filters to restore this chart.</span></div>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <div class="card-heading"><div><h2>Retirement outlook</h2><p>Reported retirement MW for active generators</p></div><span>2026–2050</span></div>
+            <div class="chart-wrap">
+              <canvas id="retirementChart" role="img" aria-label="Bar chart of reported generator retirement capacity by year">Retirement outlook chart. Use the underlying data view when a visual chart is not accessible.</canvas>
+              <div class="chart-empty" data-chart-empty="retirement" role="status" hidden><strong>No reported retirements</strong><span>No active generators in this selection report a retirement in the chart range.</span></div>
+            </div>
+          </article>
+        </section>
+
+        <section id="facilitiesView" class="tab-view" role="tabpanel" aria-labelledby="facilitiesTab" tabindex="0" hidden>
+          <div class="list-toolbar">
+            <div><strong id="facilityListCount">— facilities</strong><small id="facilitySortContext">Sorted by filtered capacity</small></div>
+            <select id="facilitySort" aria-label="Sort facilities">
+              <option value="capacity-desc">Capacity: high to low</option>
+              <option value="capacity-asc">Capacity: low to high</option>
+              <option value="name-asc">Facility: A to Z</option>
+              <option value="year-desc">Newest operating year</option>
+              <option value="year-asc">Oldest operating year</option>
+            </select>
+          </div>
+          <div id="facilityList" class="facility-list"></div>
+          <div class="pagination">
+            <button id="previousPageBtn" type="button">Previous</button>
+            <span id="pageLabel">Page 1</span>
+            <button id="nextPageBtn" type="button">Next</button>
+          </div>
+        </section>
+
+        <section id="dataView" class="tab-view" role="tabpanel" aria-labelledby="dataTab" tabindex="0" hidden>
+          <article class="data-card">
+            <p class="eyebrow">Bundled dataset</p>
+            <h2 id="dataSnapshotTitle">January 2026 snapshot</h2>
+            <p>The application ships with a prebuilt JavaScript data store. Users never need to locate or upload source files.</p>
+            <dl class="metadata-list">
+              <div><dt>Facilities</dt><dd id="metadataFacilities">—</dd></div>
+              <div><dt>Generator records</dt><dd id="metadataGenerators">—</dd></div>
+              <div><dt>Mapped facilities</dt><dd id="metadataMapped">—</dd></div>
+              <div><dt>Generated</dt><dd id="metadataGenerated">—</dd></div>
+            </dl>
+          </article>
+
+          <article class="data-card">
+            <div class="card-heading"><div><h2>Data quality</h2><p>Exceptions retained in the bundled snapshot</p></div></div>
+            <div id="qualityList" class="quality-list"></div>
+          </article>
+
+          <article class="data-card methodology-card">
+            <div class="card-heading"><div><h2>Methodology</h2><p>How the application interprets the source extracts</p></div></div>
+            <ul>
+              <li>One detailed map marker represents one plant ID, not one generator row; nearby plants aggregate at broad zoom levels.</li>
+              <li>Facility capacity is the sum of generator rows that pass the current filters.</li>
+              <li>“Active” and “retired” reflect the two source extracts; detailed operating statuses remain available in facility drill-downs.</li>
+              <li>Reported retirement dates are shown as provided and are not independently forecast.</li>
+            </ul>
+          </article>
+        </section>
+      </div>
+    </aside>
+
+    <div class="map-toolbar glass" aria-label="Map controls">
+      <button id="zoomInBtn" type="button" title="Zoom in" aria-label="Zoom in">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button id="zoomOutBtn" type="button" title="Zoom out" aria-label="Zoom out">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+      </button>
+      <button id="zoomHomeBtn" type="button" title="Reset map extent" aria-label="Reset map extent">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M9 20v-6h6v6"/></svg>
+      </button>
+      <button id="basemapBtn" type="button" title="Switch basemap" aria-label="Switch basemap">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 10 9 5 9-5M3 17l9 5 9-5"/></svg>
+      </button>
+      <span id="basemapStatus" class="sr-only" role="status" aria-live="polite">Dark basemap selected</span>
+    </div>
+
+    <div class="map-legend glass" id="mapLegend" aria-label="Map legend">
+      <button id="legendToggle" type="button" aria-expanded="true" aria-controls="legendContent">
+        <span>Map technology</span><span aria-hidden="true">−</span>
+      </button>
+      <div id="legendContent"></div>
+    </div>
+
+    <section id="detailDrawer" class="detail-drawer glass" role="dialog" aria-modal="false" aria-label="Facility details" aria-hidden="true" tabindex="-1">
+      <button class="detail-close" id="detailCloseBtn" type="button" aria-label="Close facility details">×</button>
+      <div id="detailContent"></div>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-labelledby="loadingTitle" aria-describedby="loadingMessage">
+      <div class="loading-card glass">
+        <div class="loading-brand"><span class="brand-mark"><svg viewBox="0 0 40 40"><path d="M7 27.8 15.7 8h7.8l-3.1 9.2H33L21.8 33l2.5-10H12.1L7 27.8Z"/></svg></span></div>
+        <h2 id="loadingTitle">Building the generation fleet</h2>
+        <p id="loadingMessage">Loading the bundled January 2026 snapshot…</p>
+        <div class="loading-bar" role="progressbar" aria-label="Application loading progress" aria-valuemin="0" aria-valuemax="100"><i id="loadingProgress"></i></div>
+      </div>
+    </div>
+
+    <div id="fatalError" class="fatal-error" role="alert" hidden>
+      <strong>Application could not start.</strong>
+      <span id="fatalErrorMessage">The bundled data or a required mapping library is unavailable.</span>
+      <button id="retryBtn" class="primary-button fatal-retry" type="button">Retry</button>
+    </div>
+
+    <div id="mobileScrim" class="mobile-scrim" aria-hidden="true"></div>
+  </div>
+</body>
+</html>
